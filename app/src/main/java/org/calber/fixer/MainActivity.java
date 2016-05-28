@@ -15,6 +15,13 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
+    /*
+    Peas – 95p per bag
+    Eggs – £2.10 per dozen
+    Milk – £1.30 per bottle
+    Beans – 73p per can
+     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        fab.setOnClickListener(view -> (new SelectProduct()).show(getSupportFragmentManager(),"buy"));
+        fab.setOnClickListener(view -> (new SelectProduct()).show(getSupportFragmentManager(), "buy"));
     }
 
     public static class SelectProduct extends DialogFragment {

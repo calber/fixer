@@ -1,28 +1,41 @@
 package org.calber.fixer;
 
-import android.app.Application;
-import android.test.ApplicationTestCase;
+import org.junit.Test;
 
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
-        super(Application.class);
-    }
+import java.util.Set;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+public class ApplicationTest {
 
 
-    public void testApi() throws Exception {
+    @Test
+    public void testApi1() throws Exception {
         FixerApi api = FixerApi.builder().withNetwork().build();
-
-        Exchange exc1 = api.getApi().convert("USD,GBP").toBlocking().first();
-
-        assertNotNull(exc1.rates.get("USD"));
+        Exchange exc1 = api.convert("GBP").toBlocking().first();
         assertNotNull(exc1.rates.get("GBP"));
     }
 
-    public void testBase() throws Exception {
+    @Test
+    public void testApi2() throws Exception {
         FixerApi api = FixerApi.builder().withNetwork().build();
-
-        Exchange exc2 = api.getApi().convertWithBase("USD","EUR").toBlocking().first();
-        assertNotNull(exc2);
-
+        Exchange exc1 = api.convert(api.base).toBlocking().first();
+        assertNull(exc1.rates.get(api.base));
     }
+
+    @Test
+    public void testApi3() throws Exception {
+        FixerApi api = FixerApi.builder().withBase("GBP").withNetwork().build();
+        Exchange exc2 = api.convert("USD").toBlocking().first();
+        assertNotNull(exc2);
+    }
+
+    @Test
+    public void testApi4() throws Exception {
+        FixerApi api = FixerApi.builder().withNetwork().build();
+        Set<String> exc2 = api.currencies().toBlocking().first();
+        assertNotNull(exc2);
+    }
+
 }
