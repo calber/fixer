@@ -7,7 +7,7 @@ import java.util.Set;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public class ApplicationTest {
+public class FixerApiTests {
 
 
     @Test

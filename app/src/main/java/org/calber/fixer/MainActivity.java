@@ -13,14 +13,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
-    /*
-    Peas – 95p per bag
-    Eggs – £2.10 per dozen
-    Milk – £1.30 per bottle
-    Beans – 73p per can
-     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +29,16 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
         fab.setOnClickListener(view -> (new SelectProduct()).show(getSupportFragmentManager(), "buy"));
+    }
+
+    private List<Product> createProducts() {
+        List<Product> products = new ArrayList<>(4);
+        products.add(new Product("Peas","bag",0.95));
+        products.add(new Product("Eggs","dozen",2.1));
+        products.add(new Product("Milk","bottle",1.3));
+        products.add(new Product("Beans","can",0.73));
+
+        return products;
     }
 
     public static class SelectProduct extends DialogFragment {
