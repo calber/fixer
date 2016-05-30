@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         list.setAdapter(adapter);
         list.setHasFixedSize(true);
 
-
         fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(), "buy"));
     }
 
@@ -147,8 +146,6 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         @BindView(R.id.delete)
         ImageView delete;
 
-        private int current = 0;
-        final List<Product> products = api.getProductsApi().getProducts();
         Product product;
 
         public static EditProduct newInstance(Product product) {
@@ -182,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                 dismiss();
             });
 
-            return new AlertDialog.Builder(getActivity()).setTitle("select your product")
+            return new AlertDialog.Builder(getActivity()).setTitle("edit product")
                     .setView(view)
                     .setPositiveButton("OK", (dialog, whichButton) -> adapter.update(product))
                     .create();
