@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -57,12 +58,12 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         list.setHasFixedSize(true);
 
 
-        fab.setOnClickListener(view -> (new SelectProduct()).show(getSupportFragmentManager(), "buy"));
+        fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(), "buy"));
     }
 
     @Override
     public void onDataReady(Object object, int position) {
-
+        EditProduct.newInstance((Product) object).show(getSupportFragmentManager(), "edit");
     }
 
     @Override
@@ -76,19 +77,16 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     }
 
 
-    public static class SelectProduct extends DialogFragment implements HorizontalNumberPickerListener,
-            AdapterView.OnItemSelectedListener {
+    public static class AddProduct extends DialogFragment implements HorizontalNumberPickerListener, AdapterView.OnItemSelectedListener {
         @BindView(R.id.products)
         Spinner spinner;
         @BindView(R.id.quantity)
         HorizontalNumberPicker quantity;
         @BindView(R.id.subtotal)
         TextView subtotal;
-        private int current  = 0;
-        final List<Product> products = api.getProductsApi().getProducts();
 
-        public SelectProduct() {
-        }
+        private int current = 0;
+        final List<Product> products = api.getProductsApi().getProducts();
 
         @NonNull
         @Override
@@ -136,6 +134,71 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         public void onNothingSelected(AdapterView<?> parent) {
 
         }
+    }
+
+
+    public static class EditProduct extends DialogFragment implements HorizontalNumberPickerListener {
+        @BindView(R.id.product)
+        TextView producttext;
+        @BindView(R.id.quantity)
+        HorizontalNumberPicker quantity;
+        @BindView(R.id.subtotal)
+        TextView subtotal;
+        @BindView(R.id.delete)
+        ImageView delete;
+
+        private int current = 0;
+        final List<Product> products = api.getProductsApi().getProducts();
+        Product product;
+
+        public static EditProduct newInstance(Product product) {
+            Bundle args = new Bundle();
+            args.putParcelable("product", product);
+            EditProduct dialog = new EditProduct();
+            dialog.setArguments(args);
+            return dialog;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.edit, null);
+
+            product = getArguments().getParcelable("product");
+
+            ButterKnife.bind(this, view);
+
+            quantity.setMinValue(1);
+            quantity.setValue(product.quantity);
+            quantity.setListener(this);
+
+            producttext.setText(product.name);
+
+            subtotaltText();
+
+            delete.setOnClickListener(v -> {
+                adapter.remove(product);
+                dismiss();
+            });
+
+            return new AlertDialog.Builder(getActivity()).setTitle("select your product")
+                    .setView(view)
+                    .setPositiveButton("OK", (dialog, whichButton) -> adapter.update(product))
+                    .create();
+        }
+
+        private void subtotaltText() {
+            product.quantity = quantity.getValue();
+            subtotal.setText(String.format("%.2f", quantity.getValue() * product.unitprice));
+        }
+
+
+        @Override
+        public void onHorizontalNumberPickerChanged(HorizontalNumberPicker horizontalNumberPicker, int value) {
+            subtotaltText();
+        }
+
     }
 
 }

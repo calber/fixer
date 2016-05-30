@@ -1,9 +1,12 @@
 package org.calber.fixer;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by calber on 27/5/16.
  */
-public class Product {
+public class Product implements Parcelable {
     public String name;
     public String unit;
     public Double unitprice;
@@ -25,4 +28,36 @@ public class Product {
         Product other = (Product) o;
         return other.name.equals(name);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.name);
+        dest.writeString(this.unit);
+        dest.writeValue(this.unitprice);
+        dest.writeInt(this.quantity);
+    }
+
+    protected Product(Parcel in) {
+        this.name = in.readString();
+        this.unit = in.readString();
+        this.unitprice = (Double) in.readValue(Double.class.getClassLoader());
+        this.quantity = in.readInt();
+    }
+
+    public static final Parcelable.Creator<Product> CREATOR = new Parcelable.Creator<Product>() {
+        @Override
+        public Product createFromParcel(Parcel source) {
+            return new Product(source);
+        }
+
+        @Override
+        public Product[] newArray(int size) {
+            return new Product[size];
+        }
+    };
 }
