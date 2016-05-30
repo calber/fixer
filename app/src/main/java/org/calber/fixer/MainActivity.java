@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -22,10 +23,12 @@ import android.widget.TextView;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPicker;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPickerListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import rx.schedulers.Schedulers;
 
 
 public class MainActivity extends AppCompatActivity implements OnItemSelected {
@@ -34,9 +37,14 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     FloatingActionButton fab;
     @BindView(R.id.list)
     RecyclerView list;
+    @BindView(R.id.checkout)
+    ImageView checkout;
+    @BindView(R.id.root)
+    View root;
 
     private static ProductAdapter adapter;
     private static FixerApi api;
+    private static List<String> availableCurrencies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +56,40 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         ButterKnife.bind(this);
 
         api = FixerApi.builder().withBase("GBP").withNetwork().withStaticProductApi().build();
+        api.currencies().subscribeOn(Schedulers.io()).subscribe(results -> {
+                    availableCurrencies = new ArrayList<>();
+                    availableCurrencies.addAll(results);
+                }, throwable -> Snackbar.make(root, "No currenciy available", Snackbar.LENGTH_INDEFINITE).show()
+        );
 
         RecyclerView.LayoutManager layoutManager;
-        layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
+        layoutManager = new
+
+                StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
+
         list.setLayoutManager(layoutManager);
 
-        adapter = new ProductAdapter(this, this);
+        adapter = new
+
+                ProductAdapter(this, this);
+
         list.setAdapter(adapter);
         list.setHasFixedSize(true);
 
-        fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(), "buy"));
+        fab.setOnClickListener(view -> (new
+
+                AddProduct()
+
+        ).
+
+                show(getSupportFragmentManager(),
+
+                        "buy"));
+        checkout.setOnClickListener(v -> CheckOut.newInstance().
+
+                show(getSupportFragmentManager(),
+
+                        "checkout"));
     }
 
     @Override
@@ -195,6 +227,35 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         public void onHorizontalNumberPickerChanged(HorizontalNumberPicker horizontalNumberPicker, int value) {
             subtotaltText();
         }
+    }
+
+
+    public static class CheckOut extends DialogFragment {
+        @BindView(R.id.currency)
+        Spinner spinner;
+
+        public static CheckOut newInstance() {
+            CheckOut dialog = new CheckOut();
+            return dialog;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.checkout, null);
+
+
+            ButterKnife.bind(this, view);
+
+            spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, availableCurrencies));
+
+            return new AlertDialog.Builder(getActivity()).setTitle("edit product")
+                    .setView(view)
+                    .setPositiveButton("OK", (dialog, whichButton) -> dismiss())
+                    .create();
+        }
+
 
     }
 
