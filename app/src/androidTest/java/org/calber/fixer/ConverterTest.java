@@ -1,7 +1,6 @@
 package org.calber.fixer;
 
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,23 +12,20 @@ import static org.junit.Assert.assertEquals;
  */
 
 public class ConverterTest {
-    @Mock
-    Exchange exchange;
 
     @Test
-    public void testProduct() throws Exception {
+    public void testProductPriceConversion() throws Exception {
 
         FixerApi api = FixerApi.builder().withStaticProductApi().build();
 
-        exchange = new Exchange();
+        Exchange exchange = new Exchange();
         HashMap<String, Double> aMap = new HashMap<>();
         aMap.put("DOUBLE",2.0);
         exchange.rates = aMap;
 
-
         List<Product> plist = api.getProductsApi().getProducts();
 
-        PriceConverter.ConvertPrices(plist,exchange,"DOUBLE");
+        ProductPriceManager.ConvertPrices(plist,exchange,"DOUBLE");
 
 
         for(int c = 0 ; c < plist.size(); c++) {

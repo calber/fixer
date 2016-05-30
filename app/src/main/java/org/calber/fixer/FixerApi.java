@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -26,10 +25,9 @@ import retrofit2.http.Query;
 public class FixerApi {
 
     public final static String EUR = "EUR";
-    private static String ROOTURL = "http://api.fixer.io/";
+    private static String FXROOTURL = "http://api.fixer.io/";
     private ExchangeApi api;
     private StaticProducts productsApi;
-    private static final String ANDROID = "ANDROID";
 
     public ExchangeApi getApi() {
         return api;
@@ -39,7 +37,6 @@ public class FixerApi {
     }
 
     protected String base = EUR;
-    HashMap<String,Double> foreignExchangeRates = new HashMap<>();
 
     public static Builder builder() {
         return new Builder();
@@ -93,7 +90,7 @@ public class FixerApi {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
-                .baseUrl(ROOTURL)
+                .baseUrl(FXROOTURL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();

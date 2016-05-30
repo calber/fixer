@@ -14,4 +14,15 @@ public class Product {
         this.unit = unit;
         this.unitprice = unitprice;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%.2f %s)",name,unitprice,unit);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Product other = (Product) o;
+        return other.name.equals(name);
+    }
 }

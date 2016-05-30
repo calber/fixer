@@ -5,9 +5,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * Created by calber on 27/4/16.
@@ -16,7 +20,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     private final Context context;
     private final OnItemSelected listener;
-    List<Product> devicelist = new ArrayList<>();
+    List<Product> productList = new ArrayList<>();
 
 
     public ProductAdapter(Context context, OnItemSelected listener) {
@@ -24,8 +28,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         this.listener = listener;
     }
 
-    public List<Product> getDevicelist() {
-        return devicelist;
+    public List<Product> getProductList() {
+        return productList;
     }
 
     @Override
@@ -36,32 +40,43 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ProductAdapter.ViewHolder h, int position) {
+        h.product = productList.get(position);
+
+        h.name.setText(String.format("%d %s of %s", h.product.quantity, h.product.unit, h.product.name));
+        h.price.setText(String.format("item price %.2f, subtotal %.2f",h.product.unitprice,h.product.quantity * h.product.unitprice));
     }
 
     @Override
     public int getItemCount() {
-        return devicelist.size();
+        return productList.size();
     }
 
-    public void add(Product device) {
-        devicelist.add(device);
-        notifyItemInserted(devicelist.size() - 1);
+    public void add(Product product) {
+        if(productList.contains(product)) {
+            final int indexOf = productList.indexOf(product);
+            Product existing = productList.get(indexOf);
+            existing.quantity += product.quantity;
+            notifyItemChanged(indexOf);
+            return;
+        }
+        productList.add(product);
+        notifyItemInserted(productList.size() - 1);
     }
 
-    public void remove(Product device) {
-        int idx = devicelist.indexOf(device);
-        devicelist.remove(idx);
+    public void remove(Product product) {
+        int idx = productList.indexOf(product);
+        productList.remove(idx);
         notifyItemRemoved(idx);
     }
 
-    public void update(Product device) {
-        int idx = devicelist.indexOf(device);
-        devicelist.set(idx, device);
+    public void update(Product product) {
+        int idx = productList.indexOf(product);
+        productList.set(idx, product);
         notifyItemChanged(idx);
     }
 
-    public void load(List<Product> devices) {
-        devicelist = devices;
+    public void load(List<Product> products) {
+        productList = products;
         notifyDataSetChanged();
     }
 
@@ -72,7 +87,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     @Override
     public void onItemDismiss(int position) {
-        devicelist.remove(position);
+        productList.remove(position);
         notifyItemRemoved(position);
         listener.onDataRemoved(null, position);
     }
@@ -80,16 +95,22 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        Product device;
+        @BindView(R.id.name)
+        TextView name;
+        @BindView(R.id.price)
+        TextView price;
+
+        Product product;
 
         public ViewHolder(View view) {
             super(view);
             view.setOnClickListener(this);
+            ButterKnife.bind(this,view);
         }
 
         @Override
         public void onClick(View v) {
-            listener.onDataReady(device, devicelist.indexOf(device));
+            listener.onDataReady(product, productList.indexOf(product));
         }
 
     }
