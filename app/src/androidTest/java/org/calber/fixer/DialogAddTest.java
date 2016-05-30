@@ -98,6 +98,7 @@ public class DialogAddTest {
 
     interface ProductMatcherInterface {
         boolean matchProduct(Product product);
+
         String describe();
     }
 

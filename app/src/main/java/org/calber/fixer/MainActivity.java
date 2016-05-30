@@ -272,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                     .subscribe(exc -> {
                         exchange = exc;
                         adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
+                        adapter.setBase(api.base);
                         total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), api.base));
                     }, throwable -> Toast.makeText(getContext(), "No rate available",Toast.LENGTH_LONG).show());
 

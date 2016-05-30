@@ -21,6 +21,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private final Context context;
     private final OnItemSelected listener;
     List<Product> productList = new ArrayList<>();
+    private String base = "GBP";
 
 
     public ProductAdapter(Context context, OnItemSelected listener) {
@@ -43,7 +44,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         h.product = productList.get(position);
 
         h.name.setText(String.format("%d %s of %s", h.product.quantity, h.product.unit, h.product.name));
-        h.price.setText(String.format("item price %.2f, subtotal %.2f",h.product.unitprice,h.product.quantity * h.product.unitprice));
+        h.price.setText(String.format("item price %.2f %s, subtotal %.2f %s",h.product.unitprice, base,h.product.quantity * h.product.unitprice,base));
     }
 
     @Override
@@ -90,6 +91,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         productList.remove(position);
         notifyItemRemoved(position);
         listener.onDataRemoved(null, position);
+    }
+
+    public void setBase(String base) {
+        this.base = base;
     }
 
 
