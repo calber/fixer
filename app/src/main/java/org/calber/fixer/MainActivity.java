@@ -62,11 +62,8 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                 , throwable -> Snackbar.make(root, "No currency available", Snackbar.LENGTH_INDEFINITE).show()
         );
 
-
         RecyclerView.LayoutManager layoutManager;
-        layoutManager = new
-
-                StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
+        layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
 
         list.setLayoutManager(layoutManager);
 
@@ -263,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            if(firstfire)
+            if (firstfire)
                 convertTo = api.base;
             else
                 convertTo = availableCurrencies.get(position);
@@ -274,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                         adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
                         adapter.setBase(api.base);
                         total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), api.base));
-                    }, throwable -> Toast.makeText(getContext(), "No rate available",Toast.LENGTH_LONG).show());
+                    }, throwable -> Toast.makeText(getContext(), "No rate available", Toast.LENGTH_LONG).show());
 
         }
 
