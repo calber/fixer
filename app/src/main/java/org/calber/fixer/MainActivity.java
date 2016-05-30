@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     private static FixerApi api;
     private static List<String> availableCurrencies;
     private static Exchange exchange;
+    private static List<Product> productsToBuy ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         api.currencies().subscribeOn(Schedulers.io()).subscribe(results -> availableCurrencies = results
                 , throwable -> Snackbar.make(root, "No currency available", Snackbar.LENGTH_INDEFINITE).show()
         );
+        productsToBuy = api.getProductsApi().getProducts();
 
         RecyclerView.LayoutManager layoutManager;
         layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
@@ -72,20 +74,8 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         list.setAdapter(adapter);
         list.setHasFixedSize(true);
 
-        fab.setOnClickListener(view -> (new
-
-                AddProduct()
-
-        ).
-
-                show(getSupportFragmentManager(),
-
-                        "buy"));
-        checkout.setOnClickListener(v -> CheckOut.newInstance().
-
-                show(getSupportFragmentManager(),
-
-                        "checkout"));
+        fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(),"buy"));
+        checkout.setOnClickListener(v -> CheckOut.newInstance().show(getSupportFragmentManager(),"checkout"));
     }
 
     @Override
@@ -113,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         TextView subtotal;
 
         private int current = 0;
-        final List<Product> products = api.getProductsApi().getProducts();
 
         @NonNull
         @Override
@@ -126,19 +115,19 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
             quantity.setListener(this);
             quantity.setMinValue(1);
 
-            spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, products));
+            spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, productsToBuy));
             spinner.setOnItemSelectedListener(this);
             subtotaltText();
 
             return new AlertDialog.Builder(getActivity()).setTitle("select your product")
                     .setView(view)
-                    .setPositiveButton("OK", (dialog, whichButton) -> adapter.add(products.get(current)))
+                    .setPositiveButton("OK", (dialog, whichButton) -> adapter.add(productsToBuy.get(current)))
                     .create();
         }
 
         private void subtotaltText() {
-            products.get(current).quantity = quantity.getValue();
-            subtotal.setText(String.format("%.2f", quantity.getValue() * products.get(current).unitprice));
+            productsToBuy.get(current).quantity = quantity.getValue();
+            subtotal.setText(String.format("%.2f %s", quantity.getValue() * productsToBuy.get(current).unitprice,api.base));
         }
 
         @Override
@@ -215,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         private void subtotaltText() {
             product.quantity = quantity.getValue();
-            subtotal.setText(String.format("%.2f", quantity.getValue() * product.unitprice));
+            subtotal.setText(String.format("%.2f %s", quantity.getValue() * product.unitprice,api.base));
         }
 
 
@@ -269,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                     .subscribe(exc -> {
                         exchange = exc;
                         adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
+                        api.convertPrices(productsToBuy,exchange,convertTo);
                         adapter.setBase(api.base);
                         total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), api.base));
                     }, throwable -> Toast.makeText(getContext(), "No rate available", Toast.LENGTH_LONG).show());

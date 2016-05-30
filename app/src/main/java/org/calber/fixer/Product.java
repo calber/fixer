@@ -18,6 +18,13 @@ public class Product implements Parcelable {
         this.unitprice = unitprice;
     }
 
+    public Product(String name, String unit, Double unitprice, int quantity) {
+        this.name = name;
+        this.unit = unit;
+        this.unitprice = unitprice;
+        this.quantity = quantity;
+    }
+
     @Override
     public String toString() {
         return String.format("%s (%.2f %s)",name,unitprice,unit);

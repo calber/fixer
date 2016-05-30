@@ -60,7 +60,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             notifyItemChanged(indexOf);
             return;
         }
-        productList.add(product);
+        productList.add(new Product(product.name,product.unit,product.unitprice,product.quantity));
         notifyItemInserted(productList.size() - 1);
     }
 
