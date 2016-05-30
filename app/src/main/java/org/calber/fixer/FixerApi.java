@@ -1,12 +1,13 @@
 package org.calber.fixer;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -26,12 +27,17 @@ public class FixerApi {
 
     public final static String EUR = "EUR";
     private static String ROOTURL = "http://api.fixer.io/";
-    private Api api;
+    private ExchangeApi api;
+    private StaticProducts productsApi;
     private static final String ANDROID = "ANDROID";
 
-    public Api getApi() {
+    public ExchangeApi getApi() {
         return api;
     }
+    public StaticProducts getProductsApi() {
+        return productsApi;
+    }
+
     protected String base = EUR;
     HashMap<String,Double> foreignExchangeRates = new HashMap<>();
 
@@ -52,7 +58,8 @@ public class FixerApi {
             return this;
         }
 
-        public Builder withStaticData(Context context, String name) {
+        public Builder withStaticProductApi() {
+            fixerApi.productsApi =  new StaticProducts() ;
             return this;
         }
 
@@ -69,7 +76,8 @@ public class FixerApi {
                 .create();
     }
 
-    private static Api NetworkData() {
+
+    private static ExchangeApi NetworkData() {
         Gson gson = buildGson();
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
@@ -90,7 +98,7 @@ public class FixerApi {
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
 
-        return retrofit.create(Api.class);
+        return retrofit.create(ExchangeApi.class);
     }
 
     public rx.Observable<Exchange> convert(String to) {
@@ -103,7 +111,18 @@ public class FixerApi {
     }
 
 
-    private interface Api {
+    static class StaticProducts {
+        public List<Product> getProducts() {
+            List<Product> products = new ArrayList<>(4);
+            products.add(new Product("Peas","bag",0.95));
+            products.add(new Product("Eggs","dozen",2.1));
+            products.add(new Product("Milk","bottle",1.3));
+            products.add(new Product("Beans","can",0.73));
+            return products;
+        }
+    }
+
+    private interface ExchangeApi {
 
         @GET("latest")
         rx.Observable<Exchange> exchangeRates(@Query("base") String base);
