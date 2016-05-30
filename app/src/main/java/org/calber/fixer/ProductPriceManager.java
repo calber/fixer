@@ -7,7 +7,9 @@ import java.util.List;
  */
 public class ProductPriceManager {
 
-    public static List<Product> ConvertPrices(List<Product> products, Exchange factor, String currency) {
+    public static List<Product> convertPrices(List<Product> products, Exchange factor, String currency) {
+
+        if(factor.rates.isEmpty()) return products;
 
         for (Product p: products)
             p.unitprice *= factor.rates.get(currency);

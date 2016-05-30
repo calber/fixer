@@ -25,7 +25,7 @@ public class ConverterTest {
 
         List<Product> plist = api.getProductsApi().getProducts();
 
-        ProductPriceManager.ConvertPrices(plist,exchange,"DOUBLE");
+        ProductPriceManager.convertPrices(plist,exchange,"DOUBLE");
 
 
         for(int c = 0 ; c < plist.size(); c++) {

@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     private static ProductAdapter adapter;
     private static FixerApi api;
     private static List<String> availableCurrencies;
+    private static Exchange exchange;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,10 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
                     availableCurrencies.addAll(results);
                 }, throwable -> Snackbar.make(root, "No currenciy available", Snackbar.LENGTH_INDEFINITE).show()
         );
+
+        api.convert(api.base).subscribeOn(Schedulers.io())
+                .subscribe(exc -> exchange = exc, throwable -> Snackbar.make(root, "No rate available", Snackbar.LENGTH_INDEFINITE).show());
+
 
         RecyclerView.LayoutManager layoutManager;
         layoutManager = new
@@ -230,9 +235,11 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     }
 
 
-    public static class CheckOut extends DialogFragment {
+    public static class CheckOut extends DialogFragment implements AdapterView.OnItemSelectedListener {
         @BindView(R.id.currency)
         Spinner spinner;
+        @BindView(R.id.total)
+        TextView total;
 
         public static CheckOut newInstance() {
             CheckOut dialog = new CheckOut();
@@ -245,10 +252,13 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view = inflater.inflate(R.layout.checkout, null);
 
-
             ButterKnife.bind(this, view);
 
             spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, availableCurrencies));
+
+            spinner.setOnItemSelectedListener(this);
+
+            total.setText(String.format("%.2f",ProductPriceManager.shopTotal(adapter.getProductList())));
 
             return new AlertDialog.Builder(getActivity()).setTitle("edit product")
                     .setView(view)
@@ -257,6 +267,15 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         }
 
 
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            ProductPriceManager.convertPrices(adapter.getProductList(), exchange, availableCurrencies.get(position));
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
     }
 
 }
