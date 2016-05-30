@@ -70,9 +70,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         list.setLayoutManager(layoutManager);
 
-        adapter = new
-
-                ProductAdapter(this, this);
+        adapter = new ProductAdapter(this, this);
 
         list.setAdapter(adapter);
         list.setHasFixedSize(true);
@@ -236,6 +234,8 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         Spinner spinner;
         @BindView(R.id.total)
         TextView total;
+        private String convertTo;
+        private boolean firstfire = true;
 
         public static CheckOut newInstance() {
             CheckOut dialog = new CheckOut();
@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
             ButterKnife.bind(this, view);
 
             spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, availableCurrencies));
+            spinner.setSelection(availableCurrencies.indexOf(api.base));
             spinner.setOnItemSelectedListener(this);
 
             return new AlertDialog.Builder(getActivity()).setTitle("edit product")
@@ -262,12 +263,16 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            final String convertTo = availableCurrencies.get(position);
+            if(firstfire)
+                convertTo = api.base;
+            else
+                convertTo = availableCurrencies.get(position);
+            firstfire = false;
             api.conversion().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(exc -> {
                         exchange = exc;
-                        adapter.load(api.convertPrices(adapter.getProductList(), exchange, availableCurrencies.get(position)));
-                        total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), convertTo));
+                        adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
+                        total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), api.base));
                     }, throwable -> Toast.makeText(getContext(), "No rate available",Toast.LENGTH_LONG).show());
 
         }
