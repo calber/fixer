@@ -3,13 +3,14 @@ package org.calber.fixer;
 import java.util.List;
 
 /**
+ * @deprecated
  * Created by calber on 28/5/16.
  */
 public class ProductPriceManager {
 
     public static List<Product> convertPrices(List<Product> products, Exchange factor, String currency) {
 
-        if(factor.rates.isEmpty()) return products;
+        if(currency.equals(factor.base)) return products;
 
         for (Product p: products)
             p.unitprice *= factor.rates.get(currency);

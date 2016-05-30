@@ -19,15 +19,16 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hrules.horizontalnumberpicker.HorizontalNumberPicker;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPickerListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 
@@ -57,14 +58,9 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         ButterKnife.bind(this);
 
         api = FixerApi.builder().withBase("GBP").withNetwork().withStaticProductApi().build();
-        api.currencies().subscribeOn(Schedulers.io()).subscribe(results -> {
-                    availableCurrencies = new ArrayList<>();
-                    availableCurrencies.addAll(results);
-                }, throwable -> Snackbar.make(root, "No currenciy available", Snackbar.LENGTH_INDEFINITE).show()
+        api.currencies().subscribeOn(Schedulers.io()).subscribe(results -> availableCurrencies = results
+                , throwable -> Snackbar.make(root, "No currency available", Snackbar.LENGTH_INDEFINITE).show()
         );
-
-        api.convert(api.base).subscribeOn(Schedulers.io())
-                .subscribe(exc -> exchange = exc, throwable -> Snackbar.make(root, "No rate available", Snackbar.LENGTH_INDEFINITE).show());
 
 
         RecyclerView.LayoutManager layoutManager;
@@ -255,10 +251,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
             ButterKnife.bind(this, view);
 
             spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, availableCurrencies));
-
             spinner.setOnItemSelectedListener(this);
-
-            total.setText(String.format("%.2f",ProductPriceManager.shopTotal(adapter.getProductList())));
 
             return new AlertDialog.Builder(getActivity()).setTitle("edit product")
                     .setView(view)
@@ -269,7 +262,14 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            ProductPriceManager.convertPrices(adapter.getProductList(), exchange, availableCurrencies.get(position));
+            final String convertTo = availableCurrencies.get(position);
+            api.conversion().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(exc -> {
+                        exchange = exc;
+                        adapter.load(api.convertPrices(adapter.getProductList(), exchange, availableCurrencies.get(position)));
+                        total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), convertTo));
+                    }, throwable -> Toast.makeText(getContext(), "No rate available",Toast.LENGTH_LONG).show());
+
         }
 
         @Override

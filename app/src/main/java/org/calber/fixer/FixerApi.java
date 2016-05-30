@@ -7,7 +7,6 @@ import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -32,6 +31,7 @@ public class FixerApi {
     public ExchangeApi getApi() {
         return api;
     }
+
     public StaticProducts getProductsApi() {
         return productsApi;
     }
@@ -56,7 +56,7 @@ public class FixerApi {
         }
 
         public Builder withStaticProductApi() {
-            fixerApi.productsApi =  new StaticProducts() ;
+            fixerApi.productsApi = new StaticProducts();
             return this;
         }
 
@@ -99,24 +99,51 @@ public class FixerApi {
     }
 
     public rx.Observable<Exchange> convert(String to) {
-        return api.exchangeRatesOf(base,to);
+        return api.exchangeRatesOf(base, to);
     }
 
-    public rx.Observable<Set<String>> currencies() {
+    public rx.Observable<Exchange> conversion() {
+        return api.exchangeRates(base);
+    }
+
+
+    public rx.Observable<List<String>> currencies() {
         return api.exchangeRates(base)
-                .map(exchange -> exchange.rates.keySet());
+                .map(exchange -> {
+                    List<String> result = new ArrayList<>(exchange.rates.size() +1);
+                    result.add(base);
+                    result.addAll(exchange.rates.keySet());
+                    return result;
+                });
     }
 
 
     static class StaticProducts {
         public List<Product> getProducts() {
             List<Product> products = new ArrayList<>(4);
-            products.add(new Product("Peas","bag",0.95));
-            products.add(new Product("Eggs","dozen",2.1));
-            products.add(new Product("Milk","bottle",1.3));
-            products.add(new Product("Beans","can",0.73));
+            products.add(new Product("Peas", "bag", 0.95));
+            products.add(new Product("Eggs", "dozen", 2.1));
+            products.add(new Product("Milk", "bottle", 1.3));
+            products.add(new Product("Beans", "can", 0.73));
             return products;
         }
+    }
+
+    public List<Product> convertPrices(List<Product> products, Exchange factor, String currency) {
+        if(currency.equals(factor.base)) return products;
+
+        for (Product p: products)
+            p.unitprice *= factor.rates.get(currency);
+
+        base = currency;
+        return products;
+    }
+
+    public double shopTotal(List<Product> products) {
+        double tot = 0f;
+        for (Product p: products)
+            tot += p.unitprice * p.quantity;
+        return tot;
     }
 
     private interface ExchangeApi {
@@ -125,7 +152,7 @@ public class FixerApi {
         rx.Observable<Exchange> exchangeRates(@Query("base") String base);
 
         @GET("latest")
-        rx.Observable<Exchange> exchangeRatesOf(@Query("base") String base,@Query("symbols") String symbols);
+        rx.Observable<Exchange> exchangeRatesOf(@Query("base") String base, @Query("symbols") String symbols);
 
         @GET("latest")
         rx.Observable<Exchange> exchangeRate(@Query("base") String base, @Query("symbols") String symbols);

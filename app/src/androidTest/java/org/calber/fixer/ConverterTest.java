@@ -2,7 +2,6 @@ package org.calber.fixer;
 
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -14,29 +13,43 @@ import static org.junit.Assert.assertEquals;
 public class ConverterTest {
 
     @Test
-    public void testProductPriceConversion() throws Exception {
+    public void testConversionBase() throws Exception {
 
-        FixerApi api = FixerApi.builder().withStaticProductApi().build();
+        FixerApi api = FixerApi.builder().withBase("GBP").withNetwork().withStaticProductApi().build();
 
-        Exchange exchange = new Exchange();
-        HashMap<String, Double> aMap = new HashMap<>();
-        aMap.put("DOUBLE",2.0);
-        exchange.rates = aMap;
-
+        Exchange exchange = api.conversion().toBlocking().first();
         List<Product> plist = api.getProductsApi().getProducts();
 
-        ProductPriceManager.convertPrices(plist,exchange,"DOUBLE");
-
+        plist = api.convertPrices(plist,exchange,exchange.base);
 
         for(int c = 0 ; c < plist.size(); c++) {
-
             final float expected = api.getProductsApi().getProducts().get(c).unitprice.floatValue();
             final float actual = plist.get(c).unitprice.floatValue();
-
-            assertEquals(expected * 2, actual,0.001);
+            assertEquals(expected, actual,0.001);
         }
-
     }
 
+    @Test
+    public void testConversion1() throws Exception {
+
+        FixerApi api = FixerApi.builder().withBase("GBP").withNetwork().withStaticProductApi().build();
+
+        Exchange exchange = api.conversion().toBlocking().first();
+        List<Product> original = api.getProductsApi().getProducts();
+
+        List<String> currencies = api.currencies().toBlocking().first();
+
+        String change = currencies.get(1);
+        List<Product> plist = api.convertPrices(original, exchange, change);
+
+        exchange = api.conversion().toBlocking().first();
+        plist = api.convertPrices(plist,exchange,"GBP");
+
+        for(int c = 0 ; c < plist.size(); c++) {
+            final float expected = original.get(c).unitprice.floatValue();
+            final float actual = plist.get(c).unitprice.floatValue();
+            assertEquals(expected, actual,0.001);
+        }
+    }
 }
 
