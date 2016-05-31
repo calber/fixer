@@ -19,12 +19,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.hrules.horizontalnumberpicker.HorizontalNumberPicker;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPickerListener;
 
 import org.calber.fixer.models.Product;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 
@@ -59,10 +60,6 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         api = FixerApi.builder().withBase(FixerApi.GBP).withNetwork().withStaticProductApi().build();
 
-        api.currencies().subscribe(results -> availableCurrencies = results
-                , throwable -> Snackbar.make(root, "No currency available", Snackbar.LENGTH_INDEFINITE).show()
-        );
-
         RecyclerView.LayoutManager layoutManager;
         layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
 
@@ -73,9 +70,73 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         list.setAdapter(adapter);
         list.setHasFixedSize(true);
 
-        fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(),"buy"));
-        checkout.setOnClickListener(v -> CheckOut.newInstance().show(getSupportFragmentManager(),"checkout"));
     }
+
+    private void start() {
+        fab.setOnClickListener(view -> (new AddProduct()).show(getSupportFragmentManager(), "buy"));
+        checkout.setOnClickListener(v -> CheckOut.newInstance().show(getSupportFragmentManager(), "checkout"));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+
+        api.currencies().subscribe(results -> {
+                    start();
+                    availableCurrencies = results;
+                }, throwable -> EventBus.getDefault().post(
+                Notify().withMessage("No currency available, check network", Snackbar.LENGTH_INDEFINITE)
+                        .withAction(v -> finish(), "Exit")
+                        .build())
+        );
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    public static Notify.Builder Notify() {
+        return new Notify.Builder();
+    }
+
+    private static class Notify {
+        public String message;
+        public int type;
+        public View.OnClickListener action;
+        public String actionMessage;
+
+        public static final class Builder {
+            Notify notify = new Notify();
+
+            Builder withMessage(String message, int type) {
+                notify.message = message;
+                notify.type = type;
+                return this;
+            }
+
+            Builder withAction(View.OnClickListener action, String actionMessage) {
+                notify.action = action;
+                notify.actionMessage = actionMessage;
+                return this;
+            }
+
+            public Notify build() {
+                return notify;
+            }
+        }
+    }
+
+    @Subscribe
+    public void onNotifyEvent(Notify event) {
+        if (event.action != null)
+            Snackbar.make(root, event.message, event.type).setAction(event.actionMessage, event.action).show();
+        else
+            Snackbar.make(root, event.message, event.type).show();
+    }
+
 
     @Override
     public void onDataReady(Object object, int position) {
@@ -128,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         private void subtotaltText() {
             productsToBuy.get(current).quantity = quantity.getValue();
-            subtotal.setText(String.format("%.2f %s", quantity.getValue() * productsToBuy.get(current).unitprice,api.base));
+            subtotal.setText(String.format("%.2f %s", quantity.getValue() * productsToBuy.get(current).unitprice, api.base));
         }
 
         @Override
@@ -205,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         private void subtotaltText() {
             product.quantity = quantity.getValue();
-            subtotal.setText(String.format("%.2f %s", quantity.getValue() * product.unitprice,api.base));
+            subtotal.setText(String.format("%.2f %s", quantity.getValue() * product.unitprice, api.base));
         }
 
 
@@ -246,7 +307,9 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
             return new AlertDialog.Builder(getActivity()).setTitle("edit product")
                     .setView(view)
-                    .setPositiveButton("OK", (dialog, whichButton) -> dismiss())
+                    .setPositiveButton("OK", (dialog, whichButton) -> {
+                        dismiss();
+                    })
                     .create();
         }
 
@@ -263,10 +326,13 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
             api.conversion().observeOn(AndroidSchedulers.mainThread())
                     .subscribe(exchange -> {
                         adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
-                        api.convertPrices(productsToBuy,exchange,convertTo);
+                        api.convertPrices(productsToBuy, exchange, convertTo);
                         adapter.setBase(api.base);
                         total.setText(String.format("%.2f %s", api.shopTotal(adapter.getProductList()), api.base));
-                    }, throwable -> Toast.makeText(getContext(), "No rate available", Toast.LENGTH_LONG).show());
+                    }, throwable -> EventBus.getDefault().post(
+                            Notify().withMessage("no conversion rate available", Snackbar.LENGTH_INDEFINITE)
+                                    .withAction(v -> getActivity().finish(), "Exit")
+                                    .build()));
 
         }
 
