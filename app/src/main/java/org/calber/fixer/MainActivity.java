@@ -24,12 +24,13 @@ import android.widget.Toast;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPicker;
 import com.hrules.horizontalnumberpicker.HorizontalNumberPickerListener;
 
+import org.calber.fixer.models.Product;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 
 public class MainActivity extends AppCompatActivity implements OnItemSelected {
@@ -46,8 +47,6 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
     private static ProductAdapter adapter;
     private static FixerApi api;
     private static List<String> availableCurrencies;
-    private static Exchange exchange;
-    private static List<Product> productsToBuy ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,11 +57,11 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         ButterKnife.bind(this);
 
-        api = FixerApi.builder().withBase("GBP").withNetwork().withStaticProductApi().build();
-        api.currencies().subscribeOn(Schedulers.io()).subscribe(results -> availableCurrencies = results
+        api = FixerApi.builder().withBase(FixerApi.GBP).withNetwork().withStaticProductApi().build();
+
+        api.currencies().subscribe(results -> availableCurrencies = results
                 , throwable -> Snackbar.make(root, "No currency available", Snackbar.LENGTH_INDEFINITE).show()
         );
-        productsToBuy = api.getProductsApi().getProducts();
 
         RecyclerView.LayoutManager layoutManager;
         layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
@@ -103,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         TextView subtotal;
 
         private int current = 0;
+        private List<Product> productsToBuy;
 
         @NonNull
         @Override
@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
             ButterKnife.bind(this, view);
 
+            productsToBuy = api.getProductsApi().getProducts();
             quantity.setListener(this);
             quantity.setMinValue(1);
 
@@ -222,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
         TextView total;
         private String convertTo;
         private boolean firstfire = true;
+        private List<Product> productsToBuy;
 
         public static CheckOut newInstance() {
             CheckOut dialog = new CheckOut();
@@ -236,6 +238,8 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
             ButterKnife.bind(this, view);
 
+            productsToBuy = api.getProductsApi().getProducts();
+
             spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, availableCurrencies));
             spinner.setSelection(availableCurrencies.indexOf(api.base));
             spinner.setOnItemSelectedListener(this);
@@ -249,14 +253,15 @@ public class MainActivity extends AppCompatActivity implements OnItemSelected {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
             if (firstfire)
                 convertTo = api.base;
             else
                 convertTo = availableCurrencies.get(position);
             firstfire = false;
-            api.conversion().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(exc -> {
-                        exchange = exc;
+
+            api.conversion().observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(exchange -> {
                         adapter.load(api.convertPrices(adapter.getProductList(), exchange, convertTo));
                         api.convertPrices(productsToBuy,exchange,convertTo);
                         adapter.setBase(api.base);

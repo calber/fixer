@@ -5,6 +5,9 @@ import android.support.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.calber.fixer.models.Exchange;
+import org.calber.fixer.models.Product;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +19,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
+import rx.schedulers.Schedulers;
 
 
 /**
@@ -24,6 +28,8 @@ import retrofit2.http.Query;
 public class FixerApi {
 
     public final static String EUR = "EUR";
+    public final static String GBP = "GBP";
+
     private static String FXROOTURL = "http://api.fixer.io/";
     private ExchangeApi api;
     private StaticProducts productsApi;
@@ -103,12 +109,14 @@ public class FixerApi {
     }
 
     public rx.Observable<Exchange> conversion() {
-        return api.exchangeRates(base);
+        return api.exchangeRates(base)
+                .subscribeOn(Schedulers.io());
     }
 
 
     public rx.Observable<List<String>> currencies() {
         return api.exchangeRates(base)
+                .subscribeOn(Schedulers.io())
                 .map(exchange -> {
                     List<String> result = new ArrayList<>(exchange.rates.size() +1);
                     result.add(base);

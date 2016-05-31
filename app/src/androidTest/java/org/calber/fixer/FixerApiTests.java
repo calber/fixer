@@ -1,5 +1,6 @@
 package org.calber.fixer;
 
+import org.calber.fixer.models.Exchange;
 import org.junit.Test;
 
 import java.util.List;

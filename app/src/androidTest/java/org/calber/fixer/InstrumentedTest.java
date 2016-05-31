@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.view.View;
 
+import org.calber.fixer.models.Product;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +29,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class DialogAddTest {
+public class InstrumentedTest {
 
 
     @Rule

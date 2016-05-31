@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.calber.fixer.models.Product;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,7 @@ import butterknife.ButterKnife;
 /**
  * Created by calber on 27/4/16.
  */
-public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHolder> implements ItemTouchHelperAdapter {
+public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHolder> {
 
     private final Context context;
     private final OnItemSelected listener;
@@ -79,18 +81,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     public void load(List<Product> products) {
         productList = products;
         notifyDataSetChanged();
-    }
-
-    @Override
-    public boolean onItemMove(int fromPosition, int toPosition) {
-        return false;
-    }
-
-    @Override
-    public void onItemDismiss(int position) {
-        productList.remove(position);
-        notifyItemRemoved(position);
-        listener.onDataRemoved(null, position);
     }
 
     public void setBase(String base) {

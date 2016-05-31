@@ -1,4 +1,4 @@
-package org.calber.fixer;
+package org.calber.fixer.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
