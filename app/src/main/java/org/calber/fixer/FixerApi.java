@@ -24,7 +24,9 @@ import rx.schedulers.Schedulers;
 
 /**
  * Created by calber on 24/11/15.
+ *
  */
+
 public class FixerApi {
 
     public final static String EUR = "EUR";
